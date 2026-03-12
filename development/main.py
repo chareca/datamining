@@ -2,27 +2,23 @@
 conda activate py311ml
 pip install ucimlrepo
 """
-from ucimlrepo import fetch_ucirepo 
-from utils import *
+
+"""
+1. Imputacion valores perdidos
+2. Transformación categóricas -> numéricas
+3. (dsp 2do hito) estandarizar
+4. KNN (en principio parámetros fijos)
+"""
+import utils
+from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
+import pandas as pd
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 
 def main():
-  
-    # fetch dataset 
-    adult = fetch_ucirepo(id=2) 
-    
-    # data (as pandas dataframes) 
-    X = adult.data.features 
-    y = adult.data.targets 
-    
-    # metadata 
-    print(adult.metadata) 
-    
-    # variable information 
-    print(adult.variables) 
-
-
-    print(X.head())
-    print(y.head())
+    X, y = utils.get_adults_data()
 
 if __name__ == "__main__":
     main()
