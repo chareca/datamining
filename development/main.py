@@ -2,7 +2,6 @@
 conda activate py311ml
 pip install ucimlrepo
 """
-from ucimlrepo import fetch_ucirepo 
 from utils import *
 
 def main():
