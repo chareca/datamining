@@ -8,7 +8,7 @@ def get_adults_data(return_full = False):
     adult = fetch_ucirepo(id=2) 
     
     X = adult.data.features 
-    y = adult.data.targets 
+    y = np.array(adult.data.targets).ravel()
 
     if return_full:
         return X, y, adult
