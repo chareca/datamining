@@ -1,4 +1,7 @@
 
-    # df = _clean_arff_df(df)
+print(df.head())
+print(df.describe())
 
-    # print(df.head())
+for c in df.columns:
+    print(c)
+    print(np.unique(df.loc[:,c]))
