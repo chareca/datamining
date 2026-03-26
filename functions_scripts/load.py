@@ -1,5 +1,6 @@
 import pandas as pd
 
-def read_data():
-    df = pd.read_csv('data/Autism-Adult-Data.csv', delimiter=',')
+def read_data(filepath):
+    df = pd.read_csv(filepath, delimiter=',')
+    df.rename(columns={"jundice": "jaundice"})
     return df
