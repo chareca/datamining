@@ -19,8 +19,6 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 # Todo Tree
     # Te agrupa todos los TODOs en el proyecto en una tab a la izquierda
 
-# TODO: Eliminar columna fnlwgt con ColumnTransformer
-
 def main():
     X, y = utils.get_adults_data()
     

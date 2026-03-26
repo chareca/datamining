@@ -2,6 +2,7 @@ from sklearn.base import TransformerMixin, BaseEstimator
 import numpy as np
 import pandas as pd
 
+# La herencia de BaseEstimator incluye automáticamente las funciones necesarias para que esta clase sea utilizada en GridSearchCV
 class OutlierDetector(TransformerMixin, BaseEstimator):
 	"""Detector y corrector de outliers por distintos métodos"""
 	def __init__(self, k: float | None = 1.5, deteccion: str | None = "iqr", reemplazo: str | None = "mediana"):
