@@ -1,9 +1,4 @@
 """
-conda activate py311ml
-pip install ucimlrepo
-"""
-
-"""
 1. Imputacion valores perdidos
 2. Transformación categóricas -> numéricas
 3. (dsp 2do hito) estandarizar
