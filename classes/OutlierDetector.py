@@ -8,7 +8,7 @@ class OutlierDetector(TransformerMixin, BaseEstimator):
 	def __init__(self, k: float | None = 1.5, deteccion: str | None = "iqr", reemplazo: str | None = "mediana"):
 		opciones_deteccion = ["iqr", "mediastd"]
 		opciones_reemplazo = ["mediana", "media", "min", "max", "moda"]
-
+        
 		if deteccion not in opciones_deteccion:
 			raise ValueError(f"[ERROR]: La opción de deteccion '{deteccion}' no está disponible. Usar solo [{', '.join(opciones_deteccion)}]")
 		if reemplazo not in opciones_reemplazo:
@@ -30,7 +30,11 @@ class OutlierDetector(TransformerMixin, BaseEstimator):
 			y = pd.DataFrame(y)
 
 		self.stats = X.describe()
-		self.columns = X.columns
+		# Evita columnas categoricas y columnas binarias
+		self.columns = [column 
+				  for column in X.columns 
+				    if (X[column].dtype != object and 
+			            len(np.unique(X[column].dropna())) > 2)]
 				
 		if self.reemplazo == "moda":
 			self.modas = X.mode()
@@ -43,7 +47,7 @@ class OutlierDetector(TransformerMixin, BaseEstimator):
 
 					lim_sup = Q3 + self.k*IQR
 					lim_inf = Q1 - self.k*IQR
-				else:
+				else: # mediastd
 					media = self.stats[column]["mean"]
 					std = self.stats[column]["std"]
 
