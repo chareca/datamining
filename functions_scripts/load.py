@@ -10,5 +10,4 @@ def read_data(filepath):
     except pd.errors.ParserError as exc:
         raise ValueError(f"Formato CSV invalido en: {filepath}") from exc
 
-    df = df.rename(columns={"jundice": "jaundice"})
     return df
