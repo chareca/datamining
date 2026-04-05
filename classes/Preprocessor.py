@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from load import read_data
+from functions_scripts.load import read_data
 
 class Preprocessor():
     def __init__(self, df: pd.DataFrame):
