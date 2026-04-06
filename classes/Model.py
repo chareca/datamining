@@ -16,7 +16,7 @@ class Model(): # TODO: Agregar ColumnTransformer
 		self.modelo = None
 
 	def create_pipeline(self):
-		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self."""
+		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self"""
 		if self.estandarizador is not None:
 			pipe = Pipeline([("imputador", self.imputador),
 					("transformador", self.transformador),
