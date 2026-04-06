@@ -1,16 +1,51 @@
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer, FunctionTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, FunctionTransformer
 from functions_scripts.load import read_data
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class Preparador2(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.pipeline = None
+        self.pipeline = self.__dev_pipeline()
         pd.set_option('future.no_silent_downcasting', True)
 
+    def __dev_pipeline(self):
+        """Funcion constructora del pipeline de preparación de datos"""
+        # PASO 1: Renombrar (se pasa todo el DataFrame pero solo modifica lo indicado en __rename)
+        paso_renombrar = FunctionTransformer(self.__rename)
+
+        # PASO 2: Limpieza de texto solo en las columnas especificadas
+        # Usa los nombres ya renombrados en paso_renombrar
+        paso_limpiar = ColumnTransformer([
+            ('clean_text', FunctionTransformer(self.__clean_text), 
+             ['gender', 'ethnicity', 'jaundice', 'family_pdd', 'country_of_res', 'used_app_before', 'relation', 'class'])
+        ], remainder='passthrough', verbose_feature_names_out=False)
+
+        # PASO 3: Binarizar solo las que son yes/no o m/f
+        #         Eliminar columnas inútiles
+        #         Castear numéricas
+        paso_binarizado_eliminado_casteado = ColumnTransformer([
+            ('binario', FunctionTransformer(self.__categorical_to_binary), ['gender', 'jaundice', 'family_pdd', 'used_app_before', 'class']), # Binariza numéricamente columnas categoricas binarias
+            ('drop', 'drop', ['id', 'age_desc']), # Borra columnas inutiles
+            ('num', FunctionTransformer(self.__to_numeric), ['age']) # Castear a numérico
+        ], remainder='passthrough', verbose_feature_names_out=False)
+
+        pipe = Pipeline([
+            ('renombrado', paso_renombrar),
+            ('minusculas_espacios', paso_limpiar),
+            ('binarizado_eliminado_casteado', paso_binarizado_eliminado_casteado)
+        ])
+        pipe.set_output(transform="pandas")
+        return pipe
+    
+    def __rename(self, X: pd.DataFrame):
+        """Pasa todas las columnas a minuscula y renombra las columnas con nombres erróneos"""
+        Xaux = X.rename(columns=dict((col, col.lower()) for col in X.columns))
+        Xaux = Xaux.rename(columns={'jundice': 'jaundice', 'austim': 'family_pdd', 'contry_of_res': 'country_of_res', 'class/asd': 'class'})
+        return Xaux
+    
     def __clean_text(self, X: pd.DataFrame):
         """Aplica a cada columna la minimización y borrado de espacios"""
         return X.apply(lambda x: x.str.lower().str.replace(" ", "", regex=False))
@@ -31,45 +66,13 @@ class Preparador2(BaseEstimator, TransformerMixin):
             X_copy[col] = pd.to_numeric(X_copy[col], errors='coerce').astype("int8")
         return X_copy
     
-    def __rename(self, X: pd.DataFrame):
-        return X.rename(columns={'jundice': 'jaundice', 'austim': 'family_pdd', 'contry_of_res': 'country_of_res', 'Class/ASD': 'Class'})
 
     def __to_numeric(self, X: pd.DataFrame):
+        """Pasa las columnas a numérico dejando como NaN las filas que no sean númericas."""
         return X.apply(pd.to_numeric, errors='coerce').astype(np.float32)
 
-    def __dev_pipeline(self):
-        # PASO 1: Renombrar (se pasa todo el DataFrame pero solo modifica lo indicado en __rename)
-        paso_renombrar = FunctionTransformer(self.__rename)
-
-        # PASO 2: Limpieza de texto solo en las columnas especificadas
-        # Usa los nombres ya renombrados en paso_renombrar
-        paso_limpiar = ColumnTransformer([
-            ('clean_text', FunctionTransformer(self.__clean_text), 
-             ['gender', 'ethnicity', 'jaundice', 'family_pdd', 'country_of_res', 'used_app_before', 'relation', 'Class'])
-        ], remainder='passthrough', verbose_feature_names_out=False)
-
-        # PASO 3: Binarizar solo las que son yes/no o m/f
-        #         Eliminar columnas inútiles
-        #         Castear numéricas
-        paso_final = ColumnTransformer([
-            ('binario', FunctionTransformer(self.__categorical_to_binary), ['gender', 'jaundice', 'family_pdd', 'used_app_before', 'Class']), # Binariza numéricamente columnas categoricas binarias
-            ('drop', 'drop', ['id', 'age_desc']), # Borra columnas inutiles
-            ('num', FunctionTransformer(self.__to_numeric), ['age']) # Castear a numérico
-        ], remainder='passthrough', verbose_feature_names_out=False)
-
-        pipe = Pipeline([
-            ('renombrado', paso_renombrar),
-            ('minusculas_espacios', paso_limpiar),
-            ('binarizado_eliminado_casteado', paso_final)
-        ])
-        pipe.set_output(transform="pandas")
-        return pipe
-
-    def fit(self, X: pd.DataFrame, y=None):        
-        self.pipeline = self.__dev_pipeline()
-
+    def fit(self, X: pd.DataFrame, y=None):
         self.pipeline.fit(X, y)
-        
         return self
     
     def transform(self, X: pd.DataFrame):
