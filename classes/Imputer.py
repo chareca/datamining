@@ -76,8 +76,7 @@ if __name__ == '__main__':
 	print("ethnicity: ", np.unique(df["ethnicity"]))
 
 	imputer = Imputer()
-	imputer.fit(df)
-	df = imputer.transform(df)
+	df = imputer.fit_transform(df)
 
 	print("Con imputación:")
 	print("age: ", np.unique(df["age"]))
