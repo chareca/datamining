@@ -28,7 +28,7 @@ class Imputer(TransformerMixin, BaseEstimator):
 		""" No es necesario entrenar nada, solo comprobar que son DF o algo equivalente"""
 		X = pd.DataFrame(X)
 		y = pd.DataFrame(y)
-		pass
+		return self
 	
 	def transform(self, X: pd.DataFrame):
 		Xaux = pd.DataFrame(X).copy()
