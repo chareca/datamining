@@ -47,12 +47,10 @@ class Imputer(TransformerMixin, BaseEstimator):
 		for nombre_columna in nombres_columnas_objetivo:
 			if Xaux[nombre_columna].dtype == "category":
 				if self._metodo_categoricas == "moda":
-					moda_columna = Xaux[nombre_columna].mode()[0]
+					moda_columna = Xaux[Xaux[nombre_columna] != "?", nombre_columna].mode()[0]
 					Xaux.loc[Xaux[nombre_columna] == "?", nombre_columna] = moda_columna
 				elif self._metodo_categoricas == "missing":
-					Xaux[nombre_columna] = Xaux[nombre_columna].astype("str")
-					Xaux.loc[Xaux[nombre_columna] == "?", nombre_columna] = "missing"
-					Xaux[nombre_columna] = Xaux[nombre_columna].astype("category")
+					pass # No hacemos nada, las que son valores perdidos "?" simplemente las tratamos como tal
 			else:
 				if self._metodo_numericas == "media":
 					media_columna = np.nanmean(Xaux[nombre_columna])
