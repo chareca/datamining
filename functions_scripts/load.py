@@ -1,6 +1,6 @@
 import pandas as pd
 
-def read_data(filepath):
+def read_data(filepath="data/Autism-Adult-Data.csv"):
     try:
         df = pd.read_csv(filepath, delimiter=',')
     except FileNotFoundError as exc:

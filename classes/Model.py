@@ -14,7 +14,7 @@ class Model(TransformerMixin, BaseEstimator): # TODO: Agregar ColumnTransformer
 		self.clasificador = clasificador
 		self.param_grid = None
 		self.scorer = None
-		self.modelo = None
+		self.pipe = None
 
 	def create_pipeline(self):
 		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self"""
@@ -56,18 +56,18 @@ class Model(TransformerMixin, BaseEstimator): # TODO: Agregar ColumnTransformer
 		Utiliza pipeline, y en caso de haber parámetros en self.param_grid, utiliza un GridSearchCV con el Pipeline."""
 		
 		pipe = self.create_pipeline()
-		self.modelo = pipe
+		self.pipe = pipe
 
 		if self.param_grid is not None:
 			grid = GridSearchCV(pipe, self.param_grid, scoring=self.scorer)
-			self.modelo = grid
+			self.pipe = grid
 		
-		self.modelo = self.modelo.fit(X, y)
-		return self.modelo
+		self.pipe = self.pipe.fit(X, y)
+		return self.pipe
 		
 	def predict(self, X: np.ndarray | pd.DataFrame) -> np.ndarray | pd.DataFrame:
 		"""Predice X con el modelo del objeto."""
-		return self.modelo.predict(X)
+		return self.pipe.predict(X)
 
 	def accuracy_score(self, X: np.ndarray | pd.DataFrame, y: np.ndarray | pd.DataFrame, decimals: int | None = 4) -> float:
 		"""Calcula el accuracy_score para las predicciones de los datos de X con y como y_true."""

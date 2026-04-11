@@ -6,22 +6,11 @@ from functions_scripts.load import read_data
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class Preparador(TransformerMixin, BaseEstimator):
-    def __init__(self, df: pd.DataFrame | None = None):
-        self.df = df
+    def __init__(self):
         pd.set_option('future.no_silent_downcasting', True)
 
     def describe_data(self, df: pd.DataFrame | None = None) -> None:
-        if df is None:
-            columns = self.df.columns
-            describe = self.df.describe()
-
-            for c in columns:
-                print(f"\n\nColumna: {c}")
-                print(f"DataType: {self.df.loc[:,c].dtype}")
-                print(f"Unique Vals: {np.unique(self.df.loc[:,c])}")
-                if c in describe:
-                    print(f"Description:\n{describe.loc[:,c]}")
-        else:
+        if df is not None:
             df = pd.DataFrame(df)
             columns = df.columns
             describe = df.describe()
@@ -40,16 +29,11 @@ class Preparador(TransformerMixin, BaseEstimator):
             type(idxs) is not list:
             raise ValueError("[ERROR]: idxs debe ser un entero, string o una lista de los mismos.")
 
-        if df is not None: # No se hace sobre el dataframe self.df
+        if df is not None:
             if type(idxs) is str or (type(idxs) is list and type(idxs[0]) is str):
                 df = df.drop(columns=idxs)
             else:
                 df = df.drop(columns=df.columns[idxs])
-        else:
-            if type(idxs) is str or (type(idxs) is list and type(idxs[0]) is str):
-                self.df = self.df.drop(columns=idxs)
-            else:
-                self.df = self.df.drop(columns=self.df.columns[idxs])
 
     def column_to_numeric(self, idxs, df: pd.DataFrame | None = None) -> None:
         """Pasa la/las columnas indicadas en idxs de str a numerico, pasando valores invalidos a NaN"""
@@ -61,7 +45,7 @@ class Preparador(TransformerMixin, BaseEstimator):
         if type(idxs) is int or type(idxs) is str:
             idxs = [idxs]
 
-        if df is not None: # No se hace sobre el dataframe self.df
+        if df is not None:
             for idx in idxs:
                 if type(idx) is int:
                     if idx < 0 or idx >= len(df.columns):
@@ -74,19 +58,6 @@ class Preparador(TransformerMixin, BaseEstimator):
                         continue
                     # errors coerce cambia no numericos ('?') a NaN
                     df[idx] = pd.to_numeric(df[idx], errors='coerce').astype(np.float32)
-        else:
-            for idx in idxs:
-                if type(idx) is int:
-                    if idx < 0 or idx >= len(self.df.columns):
-                        continue
-                    col_name = self.df.columns[idx]
-                    # errors coerce cambia no numericos ('?') a NaN
-                    self.df[col_name] = pd.to_numeric(self.df[col_name], errors='coerce').astype(np.float32)
-                else:
-                    if idx not in self.df.columns:
-                        continue
-                    # errors coerce cambia no numericos ('?') a NaN
-                    self.df[idx] = pd.to_numeric(self.df[idx], errors='coerce').astype(np.float32)
             
     def column_get_unique(self, idxs, df: pd.DataFrame | None = None) -> None:
         """Muestra los distintos valores encontrados en la/las columnas indicadas en idxs"""
@@ -98,7 +69,7 @@ class Preparador(TransformerMixin, BaseEstimator):
         if type(idxs) is int or type(idxs) is str:
             idxs = [idxs]
         
-        if df is not None: # No se hace sobre el dataframe self.df
+        if df is not None:
             for idx in idxs:
                 if type(idx) is int:
                     if idx < 0 or idx >= len(df.columns):
@@ -108,17 +79,6 @@ class Preparador(TransformerMixin, BaseEstimator):
                     if idx not in df.columns:
                         continue
                     print(f"Unique vals in {idx}: {np.unique(df.loc[:, idx])}")        
-        else:
-            for idx in idxs:
-                if type(idx) is int:
-                    if idx < 0 or idx >= len(self.df.columns):
-                        continue
-                    print(f"Unique vals in {self.df.columns[idx]}: {np.unique(self.df.iloc[:, idx])}")
-                else:
-                    if idx not in self.df.columns:
-                        continue
-                    print(f"Unique vals in {idx}: {np.unique(self.df.loc[:, idx])}")
-
 
     def column_binary_categoric_to_numeric(self, idxs, df: pd.DataFrame | None = None) -> None:
         """Pasa las columnas binarias indicadas en idxs a entero, con la siguiente rúbrica:
@@ -134,7 +94,7 @@ class Preparador(TransformerMixin, BaseEstimator):
         if type(idxs) is int or type(idxs) is str:
             idxs = [idxs]
 
-        if df is not None: # No se hace sobre el dataframe self.df
+        if df is not None:
             for idx in idxs:
                 col = df.columns[idx] if type(idx) is int else idx
                 df[col] = df[col].replace(
@@ -145,17 +105,6 @@ class Preparador(TransformerMixin, BaseEstimator):
                     regex=True
                 )
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype("int8")
-        else:
-            for idx in idxs:
-                col = self.df.columns[idx] if type(idx) is int else idx
-                self.df[col] = self.df[col].replace(
-                    to_replace={
-                        r"(?i)\b(yes|m)\b": 1,
-                        r"(?i)\b(no|f)\b": 0
-                    },
-                    regex=True
-                )
-                self.df[col] = pd.to_numeric(self.df[col], errors='coerce').astype("int8")
 
     def column_rename(self, idxs, names=None, df: pd.DataFrame | None = None) -> None:
         """Renombra las columnas indicadas en idxs por los nombres indicados en names"""
@@ -174,20 +123,14 @@ class Preparador(TransformerMixin, BaseEstimator):
         if type(names) is str:
             names = [names]
         
-        if df is not None: # No se hace sobre el dataframe self.df
+        if df is not None:
             if type(idxs) is int or (type(idxs) is list and type(idxs[0]) is int):
                 idxs = [df.columns[idx] for idx in idxs]
 
             replace_dic = dict([(prev, new) for prev, new in zip(idxs, names)])    
             df = df.rename(columns=replace_dic)
-        else:
-            if type(idxs) is int or (type(idxs) is list and type(idxs[0]) is int):
-                idxs = [self.df.columns[idx] for idx in idxs]
-
-            replace_dic = dict([(prev, new) for prev, new in zip(idxs, names)])    
-            self.df = self.df.rename(columns=replace_dic)
-
-    def fit(self, df: pd.DataFrame):
+    
+    def fit(self, X: pd.DataFrame, y=None):
         return self
 
     def transform(self, df: pd.DataFrame):

@@ -53,7 +53,7 @@ class Preparador3(TransformerMixin, BaseEstimator):
         X[cols] = X[cols].apply(lambda x: x.str.lower().str.replace(" ", "", regex=False))
         return X
     
-    def fit(self, X):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, X):
