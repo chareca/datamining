@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
+from sklearn.base import TransformerMixin, BaseEstimator
 
-class Preparador3():
+class Preparador3(TransformerMixin, BaseEstimator):
     def __init__(self):
         pass
 
@@ -51,6 +52,12 @@ class Preparador3():
         cols = ['gender', 'ethnicity', 'jaundice', 'family_pdd', 'country_of_res', 'used_app_before', 'relation', 'class']
         X[cols] = X[cols].apply(lambda x: x.str.lower().str.replace(" ", "", regex=False))
         return X
+    
+    def fit(self, X):
+        return self
+
+    def transform(self, X):
+        return self.preparar(X)
 
 if __name__ == '__main__':
     df = pd.read_csv("datamining/data/Autism-Adult-Data.csv", delimiter=',')

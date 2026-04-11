@@ -188,24 +188,22 @@ class Preparador(TransformerMixin, BaseEstimator):
             self.df = self.df.rename(columns=replace_dic)
 
     def fit(self, df: pd.DataFrame):
-        if self.df is None:
-            self.df = df
-        
-        # 1. RENAMING
-        idxs = [14, 15]
-        self.column_rename(idxs, ["jaundice", "family_pdd"])
-
-        # 2. TO NUMERIC
-        self.column_to_numeric("age")
-
-        # 3. REDUNDANT COLUMNS
-        self.column_del(["id", "age_desc"])
-
-        # 4. BINARY CATEGORIC -> BINARY NUMERIC
-        idxs_categoric_binary_columns = [11, 13, 14, 16, 19]
-        self.column_binary_categoric_to_numeric(idxs_categoric_binary_columns)
-
         return self
 
     def transform(self, df: pd.DataFrame):
-        return self.fit(df)
+        df_copy = df.copy()
+        
+        # 1. RENAMING
+        idxs = [14, 15]
+        self.column_rename(idxs, ["jaundice", "family_pdd"], df_copy)
+
+        # 2. TO NUMERIC
+        self.column_to_numeric("age", df_copy)
+
+        # 3. REDUNDANT COLUMNS
+        self.column_del(["id", "age_desc"], df_copy)
+
+        # 4. BINARY CATEGORIC -> BINARY NUMERIC
+        idxs_categoric_binary_columns = [11, 13, 14, 16, 19]
+        self.column_binary_categoric_to_numeric(idxs_categoric_binary_columns, df_copy)
+        return df_copy

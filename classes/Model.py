@@ -1,12 +1,13 @@
-from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from sklearn.base import TransformerMixin, BaseEstimator
 
-class Model(): # TODO: Agregar ColumnTransformer
-	def __init__(self, imputador, transformador, clasificador, estandarizador = None):
+class Model(TransformerMixin, BaseEstimator): # TODO: Agregar ColumnTransformer
+	def __init__(self, preparador, imputador, transformador, clasificador, estandarizador = None):
+		self.preparador = preparador
 		self.imputador = imputador
 		self.transformador = transformador
 		self.estandarizador = estandarizador
@@ -18,12 +19,16 @@ class Model(): # TODO: Agregar ColumnTransformer
 	def create_pipeline(self):
 		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self"""
 		if self.estandarizador is not None:
-			pipe = Pipeline([("imputador", self.imputador),
+			pipe = Pipeline([
+				    ("preparador", self.preparador),
+                    ("imputador", self.imputador),
 					("transformador", self.transformador),
 					("estandarizador", self.estandarizador),
 					("modelo", self.clasificador)])
 		else:
-			pipe = Pipeline([("imputador", self.imputador),
+			pipe = Pipeline([
+				    ("preparador", self.preparador),
+				    ("imputador", self.imputador),
 					("transformador", self.transformador),
 					("modelo", self.clasificador)])
 		return pipe
@@ -34,12 +39,12 @@ class Model(): # TODO: Agregar ColumnTransformer
 		if isinstance(param_grid, list):
 			for params in param_grid:
 				for key in params.keys():
-					if key.split("__")[0] not in ["imputador", "transformador", "estandarizador", "modelo"]:
-						raise ValueError("[ERROR]: El diccionario de parametros introducido utiliza nombres inválidos.\nUsar: 'imputador', 'transformador', 'estandarizador' o 'modelo'.")
+					if key.split("__")[0] not in ["preparador", "imputador", "transformador", "estandarizador", "modelo"]:
+						raise ValueError("[ERROR]: El diccionario de parametros introducido utiliza nombres inválidos.\nUsar: 'preparador', 'imputador', 'transformador', 'estandarizador' o 'modelo'.")
 		else:
 			for key in param_grid.keys():
-				if key.split("__")[0] not in ["imputador", "transformador", "estandarizador", "modelo"]:
-					raise ValueError("[ERROR]: El diccionario de parametros introducido utiliza nombres inválidos.\nUsar: 'imputador', 'transformador', 'estandarizador' o 'modelo'.")
+				if key.split("__")[0] not in ["preparador", "imputador", "transformador", "estandarizador", "modelo"]:
+					raise ValueError("[ERROR]: El diccionario de parametros introducido utiliza nombres inválidos.\nUsar: 'preparador', 'imputador', 'transformador', 'estandarizador' o 'modelo'.")
 		self.param_grid = param_grid
 
 	def set_scorer(self, scorer):

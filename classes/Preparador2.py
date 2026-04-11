@@ -72,7 +72,7 @@ class Preparador2(BaseEstimator, TransformerMixin):
         return X.apply(pd.to_numeric, errors='coerce').astype(np.float32)
 
     def fit(self, X: pd.DataFrame, y=None):
-        self.pipeline.fit(X, y)
+        self.pipeline.fit(X, y) # Pipelines necesitan hacer fit si o si
         return self
     
     def transform(self, X: pd.DataFrame):
