@@ -4,7 +4,7 @@
 3. (dsp 2do hito) estandarizar
 4. KNN (en principio parámetros fijos)
 """
-from classes import OutlierDetector, Preparador, Preparador2, Preparador3, Model, Imputer
+from classes import OutlierDetector, Preparador, Preparador2, Preparador3, Model, Imputer, Transformador
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 import pandas as pd
@@ -14,33 +14,27 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from functions_scripts.load import read_data
 from sklearn.metrics import accuracy_score
 
-
-# Juan y Eloy les recomiendo las extensiones de VSCode 
-# "TODO Highlight" de "Wayou Liu"
-    # te resalta todos los TODOs en el proyecto
-# Todo Tree
-    # Te agrupa todos los TODOs en el proyecto en una tab a la izquierda
-
 def main():
+    # Configuración
     seed = 123
     test_size = 0.2
 
+    # Leemos los datos y dejamos el dataframe más organizado
     df = read_data()
-    
+    preparador = Preparador3()
+    df = preparador.preparar(df)
+
+    # Creamos los conjuntos de datos
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
-
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
 
     modelo = Model(
-        preparador=Preparador(),
         imputador=Imputer(),
-        # Falta transformador
-        # transformador=Transformer(),
+        transformador=Transformador(),
         clasificador=KNeighborsClassifier(),
         estandarizador=StandardScaler()
     )
-
 
     param_grid = {
         "imputador__metodo_imputacion_vars_num": ["media", "mediana"],
@@ -53,7 +47,7 @@ def main():
     modelo.set_params(param_grid)
     modelo.set_scorer(accuracy_score)
 
-    modelo.fit(X_train, y_train)    
+    modelo.fit(X_train, y_train)
     
     print(modelo.confusion_matrix(X_test, y_test))
 
