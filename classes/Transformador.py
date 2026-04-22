@@ -11,7 +11,7 @@ class Transformador(TransformerMixin, BaseEstimator):
 			raise ValueError(f"[ERROR]: La opción de imputación numérica '{metodo_cat_num}' \
 					no está disponible. Usar solo [{', '.join(opciones)}]")
 		
-		self._metodo_cat_num = metodo_cat_num
+		self.metodo_cat_num = metodo_cat_num
 
 	def fit(self, X: pd.DataFrame, y: pd.DataFrame | None = None):
 		""" No es necesario entrenar nada (al menos con el método de orden) """
@@ -24,7 +24,7 @@ class Transformador(TransformerMixin, BaseEstimator):
 
 		nombres_columnas_categoricas = Xaux.select_dtypes(include='category').columns
 		for nombre_columna in nombres_columnas_categoricas:
-			if self._metodo_cat_num == "orden":
+			if self.metodo_cat_num == "orden":
 				Xaux[nombre_columna] = Xaux[nombre_columna].cat.codes.astype("float32")
 		return Xaux
 

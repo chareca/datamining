@@ -21,8 +21,8 @@ class Imputer(TransformerMixin, BaseEstimator):
 			raise ValueError(f"[ERROR]: La opción de imputación categórica '{metodo_imputacion_vars_cat}' \
 					no está disponible. Usar solo [{', '.join(opciones_met_imp_vars_cat)}]")
 		
-		self._metodo_numericas = metodo_imputacion_vars_num
-		self._metodo_categoricas = metodo_imputacion_vars_cat
+		self.metodo_imputacion_vars_num = metodo_imputacion_vars_num
+		self.metodo_imputacion_vars_cat = metodo_imputacion_vars_cat
 
 	def fit(self, X: pd.DataFrame, y: pd.DataFrame | None = None):
 		""" No es necesario entrenar nada, solo comprobar que son DF o algo equivalente"""
@@ -46,16 +46,16 @@ class Imputer(TransformerMixin, BaseEstimator):
 		# Imputar valores en las columnas objetivo
 		for nombre_columna in nombres_columnas_objetivo:
 			if Xaux[nombre_columna].dtype == "category":
-				if self._metodo_categoricas == "moda":
-					moda_columna = Xaux[Xaux[nombre_columna] != "?", nombre_columna].mode()[0]
+				if self.metodo_imputacion_vars_cat == "moda":
+					moda_columna = Xaux.loc[Xaux[nombre_columna] != "?", nombre_columna].mode()[0]
 					Xaux.loc[Xaux[nombre_columna] == "?", nombre_columna] = moda_columna
-				elif self._metodo_categoricas == "missing":
+				elif self.metodo_imputacion_vars_cat == "missing":
 					pass # No hacemos nada, las que son valores perdidos "?" simplemente las tratamos como tal
 			else:
-				if self._metodo_numericas == "media":
+				if self.metodo_imputacion_vars_num == "media":
 					media_columna = np.nanmean(Xaux[nombre_columna])
 					Xaux.loc[Xaux[nombre_columna].isna(), nombre_columna] = media_columna
-				elif self._metodo_numericas == "mediana":
+				elif self.metodo_imputacion_vars_num == "mediana":
 					mediana_columna = np.nanmedian(Xaux[nombre_columna])
 					Xaux.loc[Xaux[nombre_columna].isna(), nombre_columna] = mediana_columna
 

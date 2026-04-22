@@ -11,6 +11,7 @@ class Preparador3(TransformerMixin, BaseEstimator):
         X = self.__column_del(X)
         X = self.__invert_meaning_answers(X)
         X = self.__clean_text(X)
+        X = self.__replace_missing(X)
         X = self.__type_variables(X)
         return X
     
@@ -48,9 +49,15 @@ class Preparador3(TransformerMixin, BaseEstimator):
         return X
 
     def __clean_text(self, X: pd.DataFrame):
-        """Aplica a cada columna la minimización y borrado de espacios"""
+        """Minimiza, borra espacios y convierte '?' en NaN"""
         cols = ['gender', 'ethnicity', 'jaundice', 'family_pdd', 'country_of_res', 'used_app_before', 'relation', 'class']
         X[cols] = X[cols].apply(lambda x: x.str.lower().str.replace(" ", "", regex=False))
+        X = X.replace("?", np.nan)
+        return X
+    
+    def __replace_missing(self, X: pd.DataFrame):
+        """Convierte los '?' en NaN para que SimpleImputer los detecte"""
+        X = X.replace('?', np.nan)
         return X
     
     def fit(self, X, y=None):

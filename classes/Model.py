@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.base import TransformerMixin, BaseEstimator
@@ -16,19 +17,27 @@ class Model(TransformerMixin, BaseEstimator): # TODO: Agregar ColumnTransformer
 		self.pipe = None
 
 	def create_pipeline(self):
-		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self"""
+		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self.
+		El Transformador se aplica dentro de un ColumnTransformer, solo a las columnas categóricas."""
+		preprocessor = ColumnTransformer(
+			transformers=[
+				("cat", self.transformador, make_column_selector(dtype_include="category")),
+			],
+			remainder="passthrough",
+		)
 		if self.estandarizador is not None:
 			pipe = Pipeline([
-                    ("imputador", self.imputador),
-					("transformador", self.transformador),
+					("imputador", self.imputador),
+					("preprocessor", preprocessor),
 					("estandarizador", self.estandarizador),
 					("modelo", self.clasificador)])
 		else:
 			pipe = Pipeline([
-				    ("imputador", self.imputador),
-					("transformador", self.transformador),
+					("imputador", self.imputador),
+					("preprocessor", preprocessor),
 					("modelo", self.clasificador)])
 		return pipe
+		
 		
 	def set_params(self, param_grid: dict) -> None:
 		"""Funcion para guardar los parámetros de un GridSearchCV en el objeto self."""
@@ -79,4 +88,4 @@ class Model(TransformerMixin, BaseEstimator): # TODO: Agregar ColumnTransformer
 	def confusion_matrix(self, X: np.ndarray | pd.DataFrame, y: np.ndarray | pd.DataFrame, labels: list | None = None) -> np.ndarray:
 		"""Calcula la matriz de confusión para las predicciones de los datos de X con y como y_true."""
 		predicciones = self.predict(X)
-		return confusion_matrix(y, predicciones, labels)
+		return confusion_matrix(y, predicciones, labels=labels)
