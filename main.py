@@ -74,9 +74,9 @@ def main():
     param_grid = {
         "imputador__metodo_imputacion_vars_num": ["media", "mediana"],
         "imputador__metodo_imputacion_vars_cat": ["moda", "missing"],
-        # "modelo__n_neighbors": [1, 2, 3, 5, 8],
-        # "modelo__weights": ["uniform", "distance"],
-        # "modelo__p": [1, 2],
+        # "modelo__n_neighbors": [1, 2, 3, 5, 8],                       # Dejar comentado hasta el final (antes de la entrega)
+        # "modelo__weights": ["uniform", "distance"],                   # Dejar comentado hasta el final (antes de la entrega)
+        # "modelo__p": [1, 2],                                          # Dejar comentado hasta el final (antes de la entrega)
     }
 
     modelo.set_params(param_grid)
