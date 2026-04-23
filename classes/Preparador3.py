@@ -56,7 +56,7 @@ class Preparador3(TransformerMixin, BaseEstimator):
         return X
     
     def __replace_missing(self, X: pd.DataFrame):
-        """Convierte los '?' en NaN para que SimpleImputer los detecte"""
+        """Convierte los '?' en NaN para que el imputador los detecte"""
         X = X.replace('?', np.nan)
         return X
     

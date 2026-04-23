@@ -9,7 +9,7 @@ import pandas as pd
 
 """
     Hito 1 — Primera solución automatizada: ColumnTransformer + Pipeline + KNN
-    Métrica: Accuracy      Validación: StratifiedKFold(10)
+    Métrica: Accuracy
 
     1. Imputacion valores perdidos
     2. Transformación categóricas -> numéricas
@@ -74,15 +74,20 @@ def main():
     param_grid = {
         "imputador__metodo_imputacion_vars_num": ["media", "mediana"],
         "imputador__metodo_imputacion_vars_cat": ["moda", "missing"],
-        "modelo__n_neighbors": [1, 2, 3, 5, 8],
-        "modelo__weights": ["uniform", "distance"],
-        "modelo__p": [1,2],
-        "modelo__n_jobs": [-1],
+        # "modelo__n_neighbors": [1, 2, 3, 5, 8],
+        # "modelo__weights": ["uniform", "distance"],
+        # "modelo__p": [1, 2],
     }
+
     modelo.set_params(param_grid)
     modelo.set_scorer("accuracy")
 
+    # Elegir metrica dependiente e independiente del umbral y siempre usar la misma
+
     modelo.fit(X_train, y_train)
+
+    for k, v in modelo.pipe.best_params_.items():
+        print(f"Entre {param_grid[k]}\nMejor {k}: {v}\n")
     
     print(modelo.confusion_matrix(X_test, y_test))
 
