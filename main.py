@@ -70,7 +70,7 @@ def main():
         clasificador=KNeighborsClassifier(),
         estandarizador=StandardScaler()
     )
-
+    # juan gay
     param_grid = {
         "imputador__metodo_imputacion_vars_num": ["media", "mediana"],
         "imputador__metodo_imputacion_vars_cat": ["moda", "missing"],
