@@ -37,7 +37,7 @@ class Imputer(TransformerMixin, BaseEstimator):
 		nombres_columnas_objetivo = []
 		for nombre_columna in Xaux.columns:
 			if Xaux[nombre_columna].dtype == "category":
-				if np.where(Xaux[nombre_columna] == "?")[0].size > 0:
+				if np.where(Xaux[nombre_columna].isna())[0].size > 0:
 					nombres_columnas_objetivo.append(nombre_columna)
 			else:
 				if Xaux[nombre_columna].isna().any():
@@ -46,11 +46,13 @@ class Imputer(TransformerMixin, BaseEstimator):
 		# Imputar valores en las columnas objetivo
 		for nombre_columna in nombres_columnas_objetivo:
 			if Xaux[nombre_columna].dtype == "category":
+				Xaux[nombre_columna] = Xaux[nombre_columna].astype("object")
 				if self.metodo_imputacion_vars_cat == "moda":
-					moda_columna = Xaux.loc[Xaux[nombre_columna] != "?", nombre_columna].mode()[0]
-					Xaux.loc[Xaux[nombre_columna] == "?", nombre_columna] = moda_columna
+					moda_columna = Xaux.loc[~Xaux[nombre_columna].isna(), nombre_columna].mode()[0]
+					Xaux.loc[Xaux[nombre_columna].isna(), nombre_columna] = moda_columna
 				elif self.metodo_imputacion_vars_cat == "missing":
-					pass # No hacemos nada, las que son valores perdidos "?" simplemente las tratamos como tal
+					Xaux.loc[Xaux[nombre_columna].isna(), nombre_columna] = "missed"
+				Xaux[nombre_columna] = Xaux[nombre_columna].astype("category")
 			else:
 				if self.metodo_imputacion_vars_num == "media":
 					media_columna = np.nanmean(Xaux[nombre_columna])
