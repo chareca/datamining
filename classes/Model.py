@@ -7,14 +7,14 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.base import TransformerMixin, BaseEstimator
 
 class Model(TransformerMixin, BaseEstimator):
-	def __init__(self, imputador, transformador, clasificador, estandarizador = None, umbral = 0.5, ):
+	def __init__(self, imputador, detector_outliers, transformador, clasificador, estandarizador = None):
 		self.imputador = imputador
+		self.detector_outliers = detector_outliers
 		self.transformador = transformador
 		self.estandarizador = estandarizador
 		self.clasificador = clasificador 
 		self.clasificador.n_jobs = -1
-		self.umbral = umbral
-		self.
+		self.umbral = None
 		self.param_grid = None
 		self.scorer = None
 		self.pipe = None
