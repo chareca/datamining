@@ -7,12 +7,14 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.base import TransformerMixin, BaseEstimator
 
 class Model(TransformerMixin, BaseEstimator):
-	def __init__(self, imputador, transformador, clasificador, estandarizador = None):
+	def __init__(self, imputador, transformador, clasificador, estandarizador = None, umbral = 0.5, ):
 		self.imputador = imputador
 		self.transformador = transformador
 		self.estandarizador = estandarizador
 		self.clasificador = clasificador 
 		self.clasificador.n_jobs = -1
+		self.umbral = umbral
+		self.
 		self.param_grid = None
 		self.scorer = None
 		self.pipe = None
@@ -20,22 +22,17 @@ class Model(TransformerMixin, BaseEstimator):
 	def create_pipeline(self):
 		"""Crea y devuelve un objeto de Pipeline utilizando los atributos del objeto self.
 		El Transformador se aplica dentro de un ColumnTransformer, solo a las columnas categóricas."""
-		preprocessor = ColumnTransformer(
-			transformers=[
-				("cat", self.transformador, make_column_selector(dtype_include="category")),
-			],
-			remainder="passthrough",
-		)
+		
 		if self.estandarizador is not None:
 			pipe = Pipeline([
 					("imputador", self.imputador),
-					("preprocessor", preprocessor),
+					("transformador", self.transformador),
 					("estandarizador", self.estandarizador),
 					("modelo", self.clasificador)])
 		else:
 			pipe = Pipeline([
 					("imputador", self.imputador),
-					("preprocessor", preprocessor),
+					("transformador", self.transformador),
 					("modelo", self.clasificador)])
 		return pipe
 		
@@ -74,19 +71,23 @@ class Model(TransformerMixin, BaseEstimator):
 		
 	def predict(self, X: np.ndarray | pd.DataFrame) -> np.ndarray | pd.DataFrame:
 		"""Predice X con el modelo del objeto."""
-		return self.pipe.predict(X)
+		return self.pipe.predict_proba(X)
+	
+	def predict_proba(self, X: np.ndarray | pd.DataFrame) -> np.ndarray | pd.DataFrame:
+		"""Predice X con el modelo del objeto."""
+		return self.pipe.predict_proba(X) 
 
 	def accuracy_score(self, X: np.ndarray | pd.DataFrame, y: np.ndarray | pd.DataFrame, decimals: int | None = 4) -> float:
 		"""Calcula el accuracy_score para las predicciones de los datos de X con y como y_true."""
-		predicciones = self.predict(X)
+		predicciones = self.predict_proba(X)
 		return round(accuracy_score(y, predicciones)*100, decimals)
 	
 	def f1_score(self, X: np.ndarray | pd.DataFrame, y: np.ndarray | pd.DataFrame, decimals: int | None = 4) -> float:
 		"""Calcula el f1-score para las predicciones de los datos de X con y como y_true."""
-		predicciones = self.predict(X)
+		predicciones = self.predict_proba(X) >= self.umbral
 		return round(f1_score(y, predicciones)*100, decimals)
 		
 	def confusion_matrix(self, X: np.ndarray | pd.DataFrame, y: np.ndarray | pd.DataFrame, labels: list | None = None) -> np.ndarray:
 		"""Calcula la matriz de confusión para las predicciones de los datos de X con y como y_true."""
-		predicciones = self.predict(X)
+		predicciones = self.predict_proba(X) >= self.umbral
 		return confusion_matrix(y, predicciones, labels=labels)

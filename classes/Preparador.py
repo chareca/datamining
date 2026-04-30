@@ -1,152 +1,91 @@
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from functions_scripts.load import read_data
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 
 class Preparador(TransformerMixin, BaseEstimator):
     def __init__(self):
-        pd.set_option('future.no_silent_downcasting', True)
+        pass
 
-    def describe_data(self, df: pd.DataFrame | None = None) -> None:
-        if df is not None:
-            df = pd.DataFrame(df)
-            columns = df.columns
-            describe = df.describe()
-
-            for c in columns:
-                print(f"\n\nColumna: {c}")
-                print(f"DataType: {df.loc[:,c].dtype}")
-                print(f"Unique Vals: {np.unique(df.loc[:,c])}")
-                if c in describe:
-                    print(f"Description:\n{describe.loc[:,c]}")
+    def preparar(self, X: pd.DataFrame):
+        X = self.__rename(X)
+        X = self.__column_del(X)
+        X = self.__invert_meaning_answers(X)
+        X = self.__clean_text(X)
+        X = self.__replace_missing(X)
+        X = self.__type_variables(X)
+        return X
     
-    def column_del(self, idxs, df: pd.DataFrame | None = None) -> None:
-        """Elimina las columnas indicadas por id o por nombre del dataframe"""
-        if type(idxs) is not int and \
-            type(idxs) is not str and \
-            type(idxs) is not list:
-            raise ValueError("[ERROR]: idxs debe ser un entero, string o una lista de los mismos.")
-
-        if df is not None:
-            if type(idxs) is str or (type(idxs) is list and type(idxs[0]) is str):
-                df = df.drop(columns=idxs)
-            else:
-                df = df.drop(columns=df.columns[idxs])
-
-    def column_to_numeric(self, idxs, df: pd.DataFrame | None = None) -> None:
-        """Pasa la/las columnas indicadas en idxs de str a numerico, pasando valores invalidos a NaN"""
-        if type(idxs) is not int and \
-            type(idxs) is not str and \
-            type(idxs) is not list:
-            raise ValueError("[ERROR]: El/los indices deben ser indicados con enteros, strings o una lista de los mismos.")
-        
-        if type(idxs) is int or type(idxs) is str:
-            idxs = [idxs]
-
-        if df is not None:
-            for idx in idxs:
-                if type(idx) is int:
-                    if idx < 0 or idx >= len(df.columns):
-                        continue
-                    col_name = df.columns[idx]
-                    # errors coerce cambia no numericos ('?') a NaN
-                    df[col_name] = pd.to_numeric(df[col_name], errors='coerce').astype(np.float32)
-                else:
-                    if idx not in df.columns:
-                        continue
-                    # errors coerce cambia no numericos ('?') a NaN
-                    df[idx] = pd.to_numeric(df[idx], errors='coerce').astype(np.float32)
-            
-    def column_get_unique(self, idxs, df: pd.DataFrame | None = None) -> None:
-        """Muestra los distintos valores encontrados en la/las columnas indicadas en idxs"""
-        if type(idxs) is not int and \
-            type(idxs) is not str and \
-            type(idxs) is not list:
-            raise ValueError("[ERROR]: El/los indices deben ser indicados con enteros, strings o una lista de los mismos.")
-        
-        if type(idxs) is int or type(idxs) is str:
-            idxs = [idxs]
-        
-        if df is not None:
-            for idx in idxs:
-                if type(idx) is int:
-                    if idx < 0 or idx >= len(df.columns):
-                        continue
-                    print(f"Unique vals in {df.columns[idx]}: {np.unique(df.iloc[:, idx])}")
-                else:
-                    if idx not in df.columns:
-                        continue
-                    print(f"Unique vals in {idx}: {np.unique(df.loc[:, idx])}")        
-
-    def column_binary_categoric_to_numeric(self, idxs, df: pd.DataFrame | None = None) -> None:
-        """Pasa las columnas binarias indicadas en idxs a entero, con la siguiente rúbrica:
-            - YES/yes -> 1
-            - M/m     -> 1
-            - NO/no   -> 0
-            - F/f     -> 0"""
-        if type(idxs) is not int and \
-            type(idxs) is not str and \
-            type(idxs) is not list:
-            raise ValueError("[ERROR]: El/los indices deben ser indicados con enteros, strings o una lista de los mismos.")
-        
-        if type(idxs) is int or type(idxs) is str:
-            idxs = [idxs]
-
-        if df is not None:
-            for idx in idxs:
-                col = df.columns[idx] if type(idx) is int else idx
-                df[col] = df[col].replace(
-                    to_replace={
-                        r"(?i)\b(yes|m)\b": 1,
-                        r"(?i)\b(no|f)\b": 0
-                    },
-                    regex=True
-                )
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype("int8")
-
-    def column_rename(self, idxs, names=None, df: pd.DataFrame | None = None) -> None:
-        """Renombra las columnas indicadas en idxs por los nombres indicados en names"""
-        if names is None:
-            return
-        if type(idxs) is not int and \
-            type(idxs) is not str and \
-            type(idxs) is not list:
-            raise ValueError("[ERROR]: El/los indices deben ser indicados con enteros, strings o una lista de los mismos.")
-        if type(idxs) is not str and \
-            type(idxs) is not list:
-            raise ValueError("[ERROR]: El/los nombres deben ser indicados con strings o una lista de los mismos.")
-        if len(idxs) != len(names):
-            raise ValueError("[ERROR]: La longitud de idxs y names debe ser la misma.")
-        
-        if type(names) is str:
-            names = [names]
-        
-        if df is not None:
-            if type(idxs) is int or (type(idxs) is list and type(idxs[0]) is int):
-                idxs = [df.columns[idx] for idx in idxs]
-
-            replace_dic = dict([(prev, new) for prev, new in zip(idxs, names)])    
-            df = df.rename(columns=replace_dic)
+    def __rename(self, X: pd.DataFrame):
+        """Pasa todas las columnas a minuscula y renombra las columnas con nombres erróneos"""
+        Xaux = X.rename(columns=dict((col, col.lower()) for col in X.columns))
+        Xaux = Xaux.rename(columns={'jundice': 'jaundice', 'austim': 'family_pdd', 'contry_of_res': 'country_of_res', 'class/asd': 'class'})
+        return Xaux
     
-    def fit(self, X: pd.DataFrame, y=None):
+    def __column_del(self, X: pd.DataFrame):
+        """ Elimina las columnas """
+        X = X.drop(columns=["id", "result", "age_desc"])
+        return X
+
+    def __invert_meaning_answers(self, X: pd.DataFrame):
+        """ En info/Dataset_Autism.pdf se explica que las siguientes columnas tienen los valores "al revés" """
+        cols = ["a2_score", "a3_score", "a4_score", "a5_score", "a6_score", "a9_score"]
+        X[cols] = np.abs(X[cols] - 1)
+        return X
+    
+    def __type_variables(self, X: pd.DataFrame):
+        """ Pasa las variables a categoricas y numéricas a dichos tipos """
+        cols_score = ["a1_score", "a2_score", "a3_score", "a4_score", "a5_score",
+                "a6_score", "a7_score", "a8_score", "a9_score", "a10_score"]
+        X[cols_score] = np.where(X[cols_score] == 1, "agree", "disagree")
+
+        cols_cat = ["a1_score", "a2_score", "a3_score", "a4_score", "a5_score",
+                "a6_score", "a7_score", "a8_score", "a9_score", "a10_score",
+                "gender", "ethnicity", "jaundice", "family_pdd", "country_of_res",
+                "used_app_before", "relation", "class"]
+        X[cols_cat] = X[cols_cat].astype('category')
+
+        cols_num = ["age"]
+        X[cols_num] = X[cols_num].apply(pd.to_numeric, errors='coerce').astype(np.float32)
+        return X
+
+    def __clean_text(self, X: pd.DataFrame):
+        """Minimiza, borra espacios y convierte '?' en NaN"""
+        cols = ['gender', 'ethnicity', 'jaundice', 'family_pdd', 'country_of_res', 'used_app_before', 'relation', 'class']
+        X[cols] = X[cols].apply(lambda x: x.str.lower().str.replace(" ", "", regex=False))
+        X = X.replace("?", np.nan)
+        return X
+    
+    def __replace_missing(self, X: pd.DataFrame):
+        """Convierte los '?' en NaN para que el imputador los detecte"""
+        X = X.replace('?', np.nan)
+        return X
+    
+    def fit(self, X, y=None):
         return self
 
-    def transform(self, df: pd.DataFrame):
-        df_copy = df.copy()
-        
-        # 1. RENAMING
-        idxs = [14, 15]
-        self.column_rename(idxs, ["jaundice", "family_pdd"], df_copy)
+    def transform(self, X):
+        return self.preparar(X)
 
-        # 2. TO NUMERIC
-        self.column_to_numeric("age", df_copy)
+if __name__ == '__main__':
+    df = pd.read_csv("datamining/data/Autism-Adult-Data.csv", delimiter=',')
+    preparador = Preparador()
 
-        # 3. REDUNDANT COLUMNS
-        self.column_del(["id", "age_desc"], df_copy)
+    print("Antes:")
+    df.info()
+    
+    df = preparador.preparar(df)
 
-        # 4. BINARY CATEGORIC -> BINARY NUMERIC
-        idxs_categoric_binary_columns = [11, 13, 14, 16, 19]
-        self.column_binary_categoric_to_numeric(idxs_categoric_binary_columns, df_copy)
-        return df_copy
+    print("\nDespués:")
+    df.info()
+
+    print("\nVariables únicas:")
+    print("a1_score...a10_score: ", np.unique(df["a1_score"]))
+    print("age: ", np.unique(df["age"]))
+    print("gender: ", np.unique(df["gender"]))
+    print("ethnicity: ", np.unique(df["ethnicity"]))
+    print("jaundice: ", np.unique(df["jaundice"]))
+    print("family_pdd: ", np.unique(df["family_pdd"]))
+    print("country_of_res: ", np.unique(df["country_of_res"]))
+    print("used_app_before: ", np.unique(df["used_app_before"]))
+    print("relation: ", np.unique(df["relation"]))
+    print("class: ", np.unique(df["class"]))
