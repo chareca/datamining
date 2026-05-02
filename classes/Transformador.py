@@ -46,11 +46,11 @@ class Transformador(TransformerMixin, BaseEstimator):
         return Xaux
 
 if __name__ == '__main__':
-    from Preparador3 import Preparador3
+    from Preparador import Preparador
     from Imputer import Imputer
 
     df = pd.read_csv("datamining/data/Autism-Adult-Data.csv", delimiter=',')
-    preparador = Preparador3()
+    preparador = Preparador()
     df = preparador.preparar(df)
     print("=============================")
     print("    SIN TRANSFORMACION")
