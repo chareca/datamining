@@ -56,6 +56,13 @@ class Transformador(TransformerMixin, BaseEstimator):
 
     def transform(self, X):
         X = pd.DataFrame(X).copy()
+        # Categorical columns cannot accept new values via assignment; convert to object first
+        for col in X.select_dtypes("category").columns:
+            X[col] = X[col].astype(object)
+
+        cols_to_drop = []
+        new_cols = {}
+
         for col in list(self.correspondencias.keys()):
             if self.metodo_cat_num in ["orden", "conteo"]:
                 mapping = self.correspondencias[col]
@@ -64,20 +71,23 @@ class Transformador(TransformerMixin, BaseEstimator):
             elif self.metodo_cat_num == "ohe":
                 categorias = self.correspondencias[col]
                 for cat in categorias:
-                    nueva_col = f"{col}_{cat}"
-                    X[nueva_col] = (X[col] == cat).astype(int)
-                X = X.drop(columns=[col])
+                    new_cols[f"{col}_{cat}"] = (X[col] == cat).astype(int)
+                cols_to_drop.append(col)
 
             elif self.metodo_cat_num == "binary":
                 info = self.correspondencias[col]
                 mapping = info["mapping"]
                 bits = info["bits"]
 
-                numeros = X[col].map(mapping).fillna(0).astype(int)
+                numeros = X[col].map(mapping).fillna(0).astype(int).to_numpy()
                 for i in range(bits):
-                    nueva_col = f"{col}_bit_{i}"
-                    X[nueva_col] = ((numeros.to_numpy() >> i) & 1)
-                X = X.drop(columns=[col])
+                    new_cols[f"{col}_bit_{i}"] = (numeros >> i) & 1
+                cols_to_drop.append(col)
+
+        if cols_to_drop:
+            X = X.drop(columns=cols_to_drop)
+        if new_cols:
+            X = pd.concat([X, pd.DataFrame(new_cols, index=X.index)], axis=1)
 
         return X
     
