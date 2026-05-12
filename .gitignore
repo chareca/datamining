@@ -1,7 +1,6 @@
 # texfiles
 memoria*
-!memoria*.pdf
-!memoria*.tex
+memoria
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
