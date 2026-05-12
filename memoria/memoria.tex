@@ -49,7 +49,7 @@ metodológico y el flujo de trabajo para el desarrollo y evaluación del modelo.
 \tableofcontents
 
 \clearpage
-\leftrightarrow 
+
 \section{Introducción}
 \subsection{Problema}
 El objetivo del proyecto es la \textbf{predicción del autismo en personas} a partir del conjunto de datos
@@ -60,16 +60,20 @@ El objetivo del proyecto es la \textbf{predicción del autismo en personas} a pa
     \item Reflexionar sobre la calidad de la solución.
 \end{itemize}
 
+\paragraph{Nota importante:} Queremos dejar en claro que el informe aquí presentado, no contiene todo el trabajo realizado en el \texttt{main.ipynb}, ya que varias secciones no eran solicitadas en el criterio de la memoria.
+
+Para estudiar la versión más completa del trabajo realizado, recomendamos leer \texttt{main.ipynb}, donde se encuentra todo el código, así como sus correspondientes explicaciones, análisis y conclusiones.
+
 \subsubsection*{Preparador}
 Se implementa un \emph{Preparador} cuyo objetivo es ordenar y limpiar el dataset sin modificar la
 información relevante. En concreto, realiza:
 \begin{itemize}
     \item Renombrado de columnas y corrección de nombres erróneos.
     \item Eliminación de columnas innecesarias.
-    \item Inversión del significado en un subconjunto de preguntas.
+    \item Inversión del significado en un subconjunto de preguntas. (donde en el dataset original, 1 significaba Disagree y 0 Agree, debido a que esto facilitaba la suma de la variable \texttt{result} que fue eliminada)
     \item Limpieza de texto en variables categóricas.
-    \item Conversión de valores perdidos ``?'' a \texttt{NaN}.
-    \item Tipado de variables: categóricas y numéricas.
+    \item Conversión de valores perdidos `?' a \texttt{NaN}.
+    \item Confirmación de tipos de variables: únicas existentes luego de Preparador().transform() son categóricas y numéricas (se eliminan \texttt{object} y otras cuyo tipo complejiza el tratamiento).
 \end{itemize}
 
 \subsection{Análisis de variables}
@@ -80,18 +84,18 @@ reducción de la probabilidad de pertenecer a la clase positiva.
 \subsubsection*{Relación de las 10 preguntas con la variable de salida}
 \begin{longtable}{p{0.06\textwidth} p{0.66\textwidth} p{0.22\textwidth}}
 \toprule
-\# & Pregunta & Dirección \\
+\# & Pregunta & De acuerdo $\leftrightarrow$ Clase \\
 \midrule
-1 & I often notice small sounds when others do not. & Agree $\rightarrow$ $\uparrow$ Autismo \\
-2 & I usually concentrate more on the whole picture, rather than the small details. & Agree $\rightarrow$ $\downarrow$ Autismo \\
-3 & I find it easy to do more than one thing at once. & Agree $\rightarrow$ $\downarrow$ Autismo \\
-4 & If there is an interruption, I can switch back to what I was doing very quickly. & Agree $\rightarrow$ $\downarrow$ Autismo \\
-5 & I find it easy to read between the lines when someone is talking to me. & Agree $\rightarrow$ $\downarrow$ Autismo \\
-6 & I know how to tell if someone listening to me is getting bored. & Agree $\rightarrow$ $\downarrow$ Autismo \\
-7 & When I'm reading a story, I find it difficult to work out the characters' intentions. & Agree $\rightarrow$ $\uparrow$ Autismo \\
-8 & I like to collect information about categories of things. & Agree $\rightarrow$ $\uparrow$ Autismo \\
-9 & I find it easy to work out what someone is thinking or feeling just by looking at their face. & Agree $\rightarrow$ $\downarrow$ Autismo \\
-10 & I find it difficult to work out people's intentions. & Agree $\rightarrow$ $\uparrow$ Autismo \\
+1 & I often notice small sounds when others do not. & $\uparrow$ Autismo \\
+2 & I usually concentrate more on the whole picture, rather than the small details. & $\downarrow$ Autismo \\
+3 & I find it easy to do more than one thing at once. & $\downarrow$ Autismo \\
+4 & If there is an interruption, I can switch back to what I was doing very quickly. &  $\downarrow$ Autismo \\
+5 & I find it easy to read between the lines when someone is talking to me. & $\downarrow$ Autismo \\
+6 & I know how to tell if someone listening to me is getting bored. & $\downarrow$ Autismo \\
+7 & When I'm reading a story, I find it difficult to work out the characters' intentions. & $\uparrow$ Autismo \\
+8 & I like to collect information about categories of things. &  $\uparrow$ Autismo \\
+9 & I find it easy to work out what someone is thinking or feeling just by looking at their face. & $\downarrow$ Autismo \\
+10 & I find it difficult to work out people's intentions. & $\uparrow$ Autismo \\
 \bottomrule
 \end{longtable}
 
@@ -100,10 +104,10 @@ reducción de la probabilidad de pertenecer a la clase positiva.
 \toprule
 Característica & Dirección \\
 \midrule
-Jaundice (ictericia) & yes $\rightarrow$ $\uparrow$ Autismo \\
-Family pdd & yes $\rightarrow$ $\uparrow$ Autismo \\
-Used app before & yes $\rightarrow$ $\uparrow$ Autismo \\
-Gender & m $\rightarrow$ $\downarrow$ Autismo \\
+Jaundice (ictericia, coloración \\ amarilla de la piel) & yes $\rightarrow$ $\uparrow$ Autismo \\
+Family pdd (historial genético \\ previo de autismo y/o PDD) & yes $\rightarrow$ $\uparrow$ Autismo \\
+Used app before (si usó la app \\ indicada en \href{https://asdtests.com}{asdtests.com} \cite{asdtests}) & yes $\rightarrow$ $\uparrow$ Autismo \\
+Gender & m \ \ $\rightarrow$ $\downarrow$ Autismo \\
 \bottomrule
 \end{longtable}
 
